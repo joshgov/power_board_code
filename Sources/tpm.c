@@ -19,19 +19,21 @@ void init_TPM2(void){
     return;
 }
 
-void init_TPM1(void){
+void init_TPM1(void){ // setup for 1KHz interrupt 1ms intervals
     SOPT2_T1CH0PS = 1;
     // TPM1SC = 0b01001000;    // Interrupt enable, busclk / 2
-    TPM1SC = TPM1SC_TOIE_MASK | TPM_BUSCLK_MASK | 0b00000110;
+    TPM1SC = TPM1SC_TOIE_MASK | TPM_BUSCLK_MASK | 0b00000100;
     TPM1C0SC = TPM1C0SC_MS0B_MASK | TPM1C0SC_ELS0B_MASK;
-    TPM1MOD = 624;
-    TPM1C0V = 312;
+    TPM1MOD = 1023;
+    TPM1C0V = 511;
+    return;
 }
 
 void interrupt VectorNumber_Vtpm1ovf tpm1_overflow_isr(void){
     TPM1SC_TOF = 0;
     if(timeout) timeout--;
     else blue_led = 0;
+    return;
 }
 
 void interrupt VectorNumber_Vtpm1ch0 tpm1_channel0_isr(void){
