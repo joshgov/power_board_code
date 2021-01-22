@@ -48,4 +48,6 @@
 #define rpi_aero_input PTAD_PTAD7
 #define rpi_rpi_input PTAD_PTAD6
 
+#define CS PTBD_PTBD5
+
 #endif

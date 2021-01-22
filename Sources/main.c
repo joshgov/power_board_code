@@ -1,9 +1,4 @@
-#include <hidef.h> /* for EnableInterrupts macro */
-#include "derivative.h" /* include peripheral declarations */
-#include "types.h"
-#include "defines.h"
-#include "hardware.h"
-#include "globals.h"
+#include "main.h"
 
 /***************************************************************************
  *  GLOBAL STRUCTURE PROTOTYPES
@@ -14,6 +9,16 @@ extern void init_global_vars(void);
 void update_system_state(void);
 void wait(uint16_t waittime);
 
+/***************************************************************************
+ *  GLOBAL STRUCTURE VARIABLES
+ ***************************************************************************/
+
+  uint16_t average_temp, average_bandgap;
+  uint32_t sum_temp, sum_bandgap;
+  uint16_t reference_temp;
+  uint16_t supply_voltage;
+  uint16_t timeout;
+  uint16_t m_slope;
 
 bool_t raw_key_pressed(){
     bool_t val = rpi_aero_input;
@@ -45,6 +50,10 @@ void init(void){
     init_bus_speed();
     init_ports();
     init_global_vars();
+    init_SCI();
+    init_ADC();
+    init_SPI();
+    init_TPM();
     update_system_state();
     
 }
@@ -162,25 +171,113 @@ void wait(uint16_t waittime)
   }
 
 
-void main(void) {
+uint16_t calc_uC_temp(void){
+  average_temp = sum_temp / 64;       // update the average temperature
+  average_bandgap = sum_bandgap / 64; // update the average bandgap value
+  if(average_bandgap) supply_voltage = 12276/average_bandgap;
+  if(supply_voltage) reference_temp  = 7173/supply_voltage;
+  if(!timeout)                        // if the timeout expired
+  {
+    // read the averaged temperature, if it is higher than or equal to
+    // the reference temperature (700 mV approximately), then we use the
+    // cold slope formula
+    if (supply_voltage)
+    {
+      m_slope = 1684 / supply_voltage;
+      temperature = 25 - ((average_temp - reference_temp) * 100)/m_slope;
+    }
+  }
+  else
+  {
+    // if average is less than the reference temperature, then we
+    // use the hot slope formula
+    if (supply_voltage)
+    {
+      m_slope = 1809/supply_voltage;
+      temperature = 25 + ((reference_temp - average_temp) * 100)/m_slope;
+    }
+  }
 
+  return temperature;
+  
+}
+
+void send_temperature(void){
+  
+  uint16_t adp6 = 0;
+  uint16_t max31855_thermocouple = 0;
+  uint16_t max31855_ref = 0;
+  uint16_t max31855_fault_flag = 0;
+  uint16_t max31855_faults = 0;
+
+  uint16_t multiplier = 1000;
+  uint16_t temperature = 0;
+  uint16_t ADCR_BG = 0;
+  uint16_t ADCR_VDD = 1023;  // max num for 10 bit ADC
+  uint16_t V_BG = 1202;     //  mult by 1000
+  uint16_t V_TEMP25 = 1396;  // mult by 1000
+  uint32_t VDD_CONV = 0;
+  uint32_t max31855_data = 0;
+  uint8_t error_codes = 0;
+
+  ADCR_BG = ConvertATD(BANDGAP_CH);
+
+  // VDD_CONV = (ADCR_VDD * V_BG) / ADCR_BG;
+  temperature = ConvertATD(TEMP_SENSOR_CH);
+
+  max31855_data = SPI_read_MAX31855();
+  max31855_thermocouple = max31855_data >> 18;
+  max31855_ref = (max31855_data & MAX31855_REF_MASK) >> 4;
+  max31855_fault_flag = (uint16_t)((max31855_data & MAX31855_FAULT_FLAG_MASK) >> 16);
+  max31855_faults = (uint16_t)(max31855_data & MAX31855_FAULT_MASK);
+
+  
+  prints("BGP");
+  printhexword(ADCR_BG);
+  prints("\0");
+  prints("UCT");
+  printhexword(temperature);
+  prints("\0");
+  prints("THC");
+  printhexword(max31855_thermocouple);
+  prints("\0");
+  prints("REF");
+  printhexword(max31855_ref);
+  prints("\0");
+
+  if(max31855_fault_flag){
+    // check what errors we have
+    prints("FTS");
+
+    if(max31855_faults & SCV_FAULT_MASK){
+      prints("SCV");
+    }
+    if(max31855_faults & SCG_FAULT_MASK)
+      prints("SCG");
+    if(max31855_faults & OC_FAULT_MASK)
+      prints("OC");
+    prints("\0"); 
+  }
+
+  
+  return;
+}
+
+void main(void) {
   init();
 
-  EnableInterrupts; /* enable interrupts */
-  /* include your code here */
+  average_temp = 0;
+  average_bandgap = 0;
+  sum_temp = 0; 
+  sum_bandgap = 0;
+
+  EnableInterrupts;
 
 
   for(;;) { // main loop
-    /*set_rpi_relay(RELAY_ON);
-    wait(1000);
-    set_aero_relay(RELAY_ON);*/
-    update_system_state();
-    
-    
-    // rpi_pwr_ctrl = ~rpi_pwr_ctrl;
-    // aero_pwr_ctrl = ~aero_pwr_ctrl;
-  
+    //update_system_state();
+    send_temperature();
+
     __RESET_WATCHDOG(); /* feeds the dog */
   } /* loop forever */
-  /* please make sure that you never leave main */
 }

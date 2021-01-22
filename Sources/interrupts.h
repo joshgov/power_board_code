@@ -7,5 +7,7 @@
 bool_t debounce_switch();
 bool_t raw_key_pressed();
 INTERRUPT(VectorNumber_Vtpm1ovf) tpm_time_up(void);
+INTERRUPT( VectorNumber_Vscirx   ) recieve_sci_byte     (void);
+
 
 #endif
