@@ -8,7 +8,9 @@ void init_ADC(void){
     // ADCCFG = 0b01010011; // 8 bit
     // ADCCFG = 0b00101001;  // example config
     ADCCFG = (ADCCFG_ADLSMP_MASK |  ADCCFG_MODE1_MASK);  // Andrea code
-    ADCSC2 = 0x00;
+    ADCSC1 = ADCSC1_AIEN_MASK | BANDGAP_CH;     // comment out to go back to no Interrupt
+    // ADCSC2 = 0x00;
+    ADCSC2 = ADCSC2_ADTRG_MASK;
     //ADCSC1 = 0x1A;
     APCTL1 = 0b00000000;
     APCTL2 = 0x00;
@@ -63,5 +65,26 @@ uint16_t ConvertATD(uint8_t adcsc1_inp){
     // combined = ADCR;
 
     return ADCR;
+    
+}
+
+void interrupt VectorNumber_Vadc adc_isr(void){
+    static uint8_t adc_seq;
+    if (!adc_seq)
+    {
+        sum_temp = sum_temp + ADCR - average_temp;
+        ADCSC1_ADCH = BANDGAP_CH;
+        adc_seq++;
+    }
+    else
+    {
+        sum_bandgap = sum_bandgap + ADCR - average_bandgap;
+        ADCSC1_ADCH = TEMP_SENSOR_CH;
+        adc_seq = 0;
+    }
+
+    if(blue_led == 1) blue_led = 0;
+    printhexbyte('\x01');
+    return;
     
 }

@@ -46,6 +46,9 @@ void init_ports(void){
     PTADD_PTADD6 = INPUT; // only works when set as input? #FIXME
     PTAPE_PTAPE6 = 1;  // set pullup resistor
 
+    PTCDD_PTCDD0 = INPUT; // only works when set as input? #FIXME
+    PTCPE_PTCPE0 = 1;  // set pullup resistor
+
     /* setup RPi input pins */
     
     PTBDD_PTBDD7 = INPUT;

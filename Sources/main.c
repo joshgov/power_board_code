@@ -15,6 +15,7 @@ void wait(uint16_t waittime);
 
   uint16_t average_temp, average_bandgap;
   uint32_t sum_temp, sum_bandgap;
+  uint16_t temperature;
   uint16_t reference_temp;
   uint16_t supply_voltage;
   uint16_t timeout;
@@ -53,7 +54,8 @@ void init(void){
     init_SCI();
     init_ADC();
     init_SPI();
-    init_TPM();
+    init_TPM1();
+    init_TPM2();
     update_system_state();
     
 }
@@ -183,7 +185,7 @@ uint16_t calc_uC_temp(void){
     // cold slope formula
     if (supply_voltage)
     {
-      m_slope = 1684 / supply_voltage;
+      m_slope = 3266 / supply_voltage;
       temperature = 25 - ((average_temp - reference_temp) * 100)/m_slope;
     }
   }
@@ -193,10 +195,13 @@ uint16_t calc_uC_temp(void){
     // use the hot slope formula
     if (supply_voltage)
     {
-      m_slope = 1809/supply_voltage;
+      m_slope = 3638/supply_voltage;
       temperature = 25 + ((reference_temp - average_temp) * 100)/m_slope;
     }
   }
+
+  prints("UCT");
+  printhexword(temperature);
 
   return temperature;
   
@@ -264,19 +269,24 @@ void send_temperature(void){
 }
 
 void main(void) {
+  timeout = 3000;
   init();
 
+  
   average_temp = 0;
   average_bandgap = 0;
   sum_temp = 0; 
   sum_bandgap = 0;
+
+  blue_led = 1;
 
   EnableInterrupts;
 
 
   for(;;) { // main loop
     //update_system_state();
-    send_temperature();
+    //send_temperature();
+    //calc_uC_temp();
 
     __RESET_WATCHDOG(); /* feeds the dog */
   } /* loop forever */

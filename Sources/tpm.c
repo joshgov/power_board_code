@@ -2,7 +2,7 @@
 
 uint8_t g_slow_start_flag = 5;
 
-void init_TPM(void){
+void init_TPM2(void){
     SOPT2_T2CH0PS = 1;
     SOPT2_T2CH1PS = 1;
     // SOPT2_T2CH1PS = 1;
@@ -19,19 +19,39 @@ void init_TPM(void){
     return;
 }
 
-void interrupt VectorNumber_Vtpm2ovf tpm2_overflow_isr(void){
-    TPM2SC_TOF = 0;     // clear interrupt flag 
-    if(!g_slow_start_flag){         // used for a slow start on the fan motor #FIXME
-        TPM2C0V = 1023;
-        TPM2C1V = 1023;
-    } 
-    else
-        g_flag -= 1;
-    return;
+void init_TPM1(void){
+    SOPT2_T1CH0PS = 1;
+    // TPM1SC = 0b01001000;    // Interrupt enable, busclk / 2
+    TPM1SC = TPM1SC_TOIE_MASK | TPM_BUSCLK_MASK | 0b00000110;
+    TPM1C0SC = TPM1C0SC_MS0B_MASK | TPM1C0SC_ELS0B_MASK;
+    TPM1MOD = 624;
+    TPM1C0V = 312;
 }
 
-void interrupt VectorNumber_Vtpm2ch1 tpm2_channel1_isr(void){
-    TPM2C1SC_CH1F = 0;
+void interrupt VectorNumber_Vtpm1ovf tpm1_overflow_isr(void){
+    TPM1SC_TOF = 0;
+    if(timeout) timeout--;
+    else blue_led = 0;
+}
+
+void interrupt VectorNumber_Vtpm1ch0 tpm1_channel0_isr(void){
+    TPM1C0SC_CH0F = 0;
+    return;
+}
+void interrupt VectorNumber_Vtpm2ovf tpm2_overflow_isr(void){
+    // should probably disable interrupts while in interrupt #FIXME
+    TPM2SC_TOF = 0;     // clear interrupt flag
+
+    if (!timeout){       // wait for temperature and bandgap readings to settle.
+    
+        if(!g_slow_start_flag){         // used for a slow start on the fan motor #FIXME
+            TPM2C0V = 1023;
+            TPM2C1V = 1023;
+        } 
+        else
+            g_slow_start_flag -= 1;
+    }
+    return;
 }
 
 void interrupt VectorNumber_Vtpm2ch0 tpm2_channel0_isr(void){
@@ -39,3 +59,7 @@ void interrupt VectorNumber_Vtpm2ch0 tpm2_channel0_isr(void){
     return;
 }
 
+void interrupt VectorNumber_Vtpm2ch1 tpm2_channel1_isr(void){
+    TPM2C1SC_CH1F = 0;
+    return;
+}
