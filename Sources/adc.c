@@ -7,13 +7,43 @@ void init_ADC(void){
     // ADCCFG = 0b01011011; // 10 bit
     // ADCCFG = 0b01010011; // 8 bit
     // ADCCFG = 0b00101001;  // example config
-    ADCCFG = (ADCCFG_ADLSMP_MASK |  ADCCFG_MODE1_MASK);  // Andrea code
-    ADCSC1 = ADCSC1_AIEN_MASK | BANDGAP_CH;     // comment out to go back to no Interrupt
+    // ADCCFG = (ADCCFG_ADLSMP_MASK |  ADCCFG_MODE1_MASK);  // Andrea code
+    /*********************/
+    // ADCSC1 must be the last register you write to
+    /*********************/
+    // ADCCFG = 0b00011000;
+    // enable long sampling time, 10-bit mode, ADICLK = 11 (internal clk), BUSCLK % 1
+    // ADCCFG = ADCCFG_ADLSMP_MASK | ADCCFG_MODE1_MASK | ADCCFG_ADICLK1_MASK | ADCCFG_ADICLK0_MASK;
     // ADCSC2 = 0x00;
-    ADCSC2 = ADCSC2_ADTRG_MASK;
+    // APCTL1 = 0b00000000;
+    // APCTL2 = 0x00;
+    // ADCSC1 = ADCSC1_AIEN_MASK | (ADCSC1_ADCH_MASK & BANDGAP_CH);     // comment out to go back to no Interrupt
+    
+    #ifdef ADC_POLLING
+        /***********************/
+        // Polling              //
+        /***********************/
+        ADCCFG = ADCCFG_ADLSMP_MASK | ADCCFG_MODE1_MASK | ADCCFG_ADICLK1_MASK | ADCCFG_ADICLK0_MASK;
+        ADCSC2 = 0x00;
+        APCTL1 = 0b00000000;
+        APCTL2 = 0x00;
+        ADCSC1 = (ADCSC1_ADCH_MASK & BANDGAP_CH); 
+    #else
+        /*********************/
+        // ADCSC1 must be the last register you write to
+        /*********************/
+        ADCCFG = 0b00011000;
+        // enable long sampling time, 10-bit mode, ADICLK = 11 (internal clk), BUSCLK % 1
+        ADCCFG = ADCCFG_ADLSMP_MASK | ADCCFG_MODE1_MASK | ADCCFG_ADICLK1_MASK | ADCCFG_ADICLK0_MASK;
+        ADCSC2 = 0x00;
+        APCTL1 = 0b00000000;
+        APCTL2 = 0x00;
+        ADCSC1 = ADCSC1_AIEN_MASK | (ADCSC1_ADCH_MASK & BANDGAP_CH);     // comment out to go back to no Interrupt
+    #endif
+
+    // ADCSC2 = ADCSC2_ADTRG_MASK;
     //ADCSC1 = 0x1A;
-    APCTL1 = 0b00000000;
-    APCTL2 = 0x00;
+    
     return;
 }
 
@@ -70,6 +100,7 @@ uint16_t ConvertATD(uint8_t adcsc1_inp){
 
 void interrupt VectorNumber_Vadc adc_isr(void){
     static uint8_t adc_seq;
+    blue_led = 0;
     if (!adc_seq)
     {
         sum_temp = sum_temp + ADCR - average_temp;
@@ -82,9 +113,7 @@ void interrupt VectorNumber_Vadc adc_isr(void){
         ADCSC1_ADCH = TEMP_SENSOR_CH;
         adc_seq = 0;
     }
-
-    if(blue_led == 1) blue_led = 0;
-    printhexbyte('\x01');
+    
     return;
     
 }

@@ -174,37 +174,47 @@ void wait(uint16_t waittime)
 
 
 uint16_t calc_uC_temp(void){
-  average_temp = sum_temp / 64;       // update the average temperature
-  average_bandgap = sum_bandgap / 64; // update the average bandgap value
-  if(average_bandgap) supply_voltage = 12276/average_bandgap;
-  if(supply_voltage) reference_temp  = 7173/supply_voltage;
-  if(!timeout)                        // if the timeout expired
-  {
-    // read the averaged temperature, if it is higher than or equal to
-    // the reference temperature (700 mV approximately), then we use the
-    // cold slope formula
-    if (supply_voltage)
-    {
-      m_slope = 3266 / supply_voltage;
-      temperature = 25 - ((average_temp - reference_temp) * 100)/m_slope;
-    }
-  }
-  else
-  {
-    // if average is less than the reference temperature, then we
-    // use the hot slope formula
-    if (supply_voltage)
-    {
-      m_slope = 3638/supply_voltage;
-      temperature = 25 + ((reference_temp - average_temp) * 100)/m_slope;
-    }
-  }
 
-  prints("UCT");
-  printhexword(temperature);
+  uint8_t multiplier = 10;
 
-  return temperature;
+  #ifdef ADC_POLLING
+  /***********************/
+  /* No ADC Interrupts   */
+  /***********************/
+
+  average_temp = ConvertATD(TEMP_SENSOR_CH);       // update the average temperature
+  average_bandgap = ConvertATD(BANDGAP_CH); // update the average bandgap value
   
+
+  #else
+    /***********************/
+    /* ADC Interrupts      */
+    /***********************/
+    average_temp = sum_temp / 64;       // update the average temperature
+    average_bandgap = sum_bandgap / 64; // update the average bandgap value
+    green_led = 0;
+  #endif
+
+  if(average_bandgap) supply_voltage = 12296/average_bandgap;
+  if(supply_voltage) reference_temp  = 13960/supply_voltage;
+
+  if(!timeout){
+    if(average_temp >= reference_temp){
+
+      if(supply_voltage)
+      {
+          m_slope = 3266 / supply_voltage;
+          temperature = (uint16_t)25 - ((average_temp - reference_temp) * 100)/m_slope;
+      }
+    }
+    else{
+        if(supply_voltage){
+          m_slope = 3638 / supply_voltage;
+          temperature = (uint16_t)25 + ((reference_temp - average_temp) * 100)/m_slope;
+        }
+    }
+  }
+  return temperature;
 }
 
 void send_temperature(void){
@@ -286,7 +296,7 @@ void main(void) {
   for(;;) { // main loop
     //update_system_state();
     //send_temperature();
-    //calc_uC_temp();
+    calc_uC_temp();
 
     __RESET_WATCHDOG(); /* feeds the dog */
   } /* loop forever */

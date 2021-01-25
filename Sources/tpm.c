@@ -32,7 +32,6 @@ void init_TPM1(void){ // setup for 1KHz interrupt 1ms intervals
 void interrupt VectorNumber_Vtpm1ovf tpm1_overflow_isr(void){
     TPM1SC_TOF = 0;
     if(timeout) timeout--;
-    else blue_led = 0;
     return;
 }
 
