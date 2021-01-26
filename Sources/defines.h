@@ -45,8 +45,8 @@
 #define blue_led PTCD_PTCD5
 #define green_led PTCD_PTCD4
 
-#define rpi_aero_input PTAD_PTAD7
-#define rpi_rpi_input PTAD_PTAD6
+#define rpi_aero_input PTBD_PTBD7
+#define rpi_rpi_input PTBD_PTBD6
 
 #define CS PTBD_PTBD5
 

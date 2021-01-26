@@ -102,7 +102,7 @@ void set_aero_relay(RELAY_STATE new_mode){
     
 }
 
-void update_system_state(void){
+void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp){
   switch(STATE.system_state)
 		{
 
@@ -134,11 +134,14 @@ void update_system_state(void){
     case TEMP_FAULT:
         set_aero_relay(RELAY_OFF);
         blue_led = OFF;
+
+        if (thermocouple_temp < AERO_THERMAL_LIMIT){
         
-        if(rpi_aero_input == 1){
-          wait(10);
-          if(rpi_aero_input == 1)
-            STATE.system_state = (READY);
+          if(rpi_aero_input == 1){
+            wait(10);
+            if(rpi_aero_input == 1)
+              STATE.system_state = (READY);
+          }
         }
         break;
         
@@ -192,7 +195,6 @@ uint16_t calc_uC_temp(void){
     /***********************/
     average_temp = sum_temp / 64;       // update the average temperature
     average_bandgap = sum_bandgap / 64; // update the average bandgap value
-    green_led = 0;
   #endif
 
   if(average_bandgap) supply_voltage = 12296/average_bandgap;
@@ -214,31 +216,81 @@ uint16_t calc_uC_temp(void){
         }
     }
   }
-  return temperature;
+  return temperature - UC_THERMAL_RESISTANCE;   // subtract 5 for junction thermal resistance
 }
 
-void send_temperature(void){
+int ipow(int base, int exp)
+{
+    int result = 1;
+    for (;;)
+    {
+        if (exp & 1)
+            result *= base;
+        exp >>= 1;
+        if (!exp)
+            break;
+        base *= base;
+    }
+
+    return result;
+}
+
+int16_t max31855_thc_to_number(uint16_t data){
+  int16_t temp = 0;
+  temp = 
+   ( ( (data & _2_10_MASK) >> 12) * ipow(2, 10) ) +\
+   ( ( (data & _2_9_MASK) >> 11)  * ipow(2, 9)  ) +\
+   ( ( (data & _2_8_MASK) >> 10)  * ipow(2, 8)  ) +\
+   ( ( (data & _2_7_MASK) >> 9 )  * ipow(2, 7)  ) +\
+   ( ( (data & _2_6_MASK) >> 8 )  * ipow(2, 6)  ) +\
+   ( ( (data & _2_5_MASK) >> 7 )  * ipow(2, 5)  ) +\
+   ( ( (data & _2_4_MASK) >> 6 )  * ipow(2, 4)  ) +\
+   ( ( (data & _2_3_MASK) >> 5 )  * ipow(2, 3)  ) +\
+   ( ( (data & _2_2_MASK) >> 4 )  * ipow(2, 2)  ) +\
+   ( ( (data & _2_1_MASK) >> 3 )  * ipow(2, 1)  ) +\
+   ( ( (data & _2_0_MASK) >> 2 )  * ipow(2, 0)  );
+
+  temp = temp * 100;        // add 2 significant digits for the decimal numbers
+
+  temp =  temp + \
+   ( ( (data & _2_M1_MASK) >> 1 ) * 50) +\
+   (   (data & _2_M2_MASK)        * 25);
+
+  temp = temp | (data & SIGN_MASK);  // add the sign bit onto the output
+  return temp;
+}
+
+int16_t max31855_ref_to_number(uint16_t data){
+  int16_t temp = 0;
+  temp = 
+   ( ( (data & REF_2_6_MASK) >> 10) * ipow(2, 6) ) +\
+   ( ( (data & REF_2_5_MASK) >> 9)  * ipow(2, 5)  ) +\
+   ( ( (data & REF_2_4_MASK) >> 8)  * ipow(2, 4)  ) +\
+   ( ( (data & REF_2_3_MASK) >> 7 )  * ipow(2, 3)  ) +\
+   ( ( (data & REF_2_2_MASK) >> 6 )  * ipow(2, 2)  ) +\
+   ( ( (data & REF_2_1_MASK) >> 5 )  * ipow(2, 1)  ) +\
+   ( ( (data & REF_2_0_MASK) >> 4 )  * ipow(2, 0)  );
+
+  temp = temp * 100;        // add 2 significant digits for the decimal numbers
+
+
+  // I drop 2 signficant figures because anything beyond 0.25C isn't very useful
+  temp = temp + ( ( (data & REF_2_M1_MASK) >> 3 )  * 50  );
+  temp = temp + ( ( (data & REF_2_M2_MASK) >> 2 )  * 25  );
+
+  // temp = temp | (data & REF_SIGN_MASK);  // add the sign bit onto the output
+  return temp;
+}
+
+uint16_t max31855_temperature(void){
   
-  uint16_t adp6 = 0;
   uint16_t max31855_thermocouple = 0;
   uint16_t max31855_ref = 0;
   uint16_t max31855_fault_flag = 0;
   uint16_t max31855_faults = 0;
 
-  uint16_t multiplier = 1000;
-  uint16_t temperature = 0;
-  uint16_t ADCR_BG = 0;
-  uint16_t ADCR_VDD = 1023;  // max num for 10 bit ADC
-  uint16_t V_BG = 1202;     //  mult by 1000
-  uint16_t V_TEMP25 = 1396;  // mult by 1000
-  uint32_t VDD_CONV = 0;
   uint32_t max31855_data = 0;
   uint8_t error_codes = 0;
-
-  ADCR_BG = ConvertATD(BANDGAP_CH);
-
-  // VDD_CONV = (ADCR_VDD * V_BG) / ADCR_BG;
-  temperature = ConvertATD(TEMP_SENSOR_CH);
 
   max31855_data = SPI_read_MAX31855();
   max31855_thermocouple = max31855_data >> 18;
@@ -246,13 +298,9 @@ void send_temperature(void){
   max31855_fault_flag = (uint16_t)((max31855_data & MAX31855_FAULT_FLAG_MASK) >> 16);
   max31855_faults = (uint16_t)(max31855_data & MAX31855_FAULT_MASK);
 
-  
-  prints("BGP");
-  printhexword(ADCR_BG);
-  prints("\0");
-  prints("UCT");
-  printhexword(temperature);
-  prints("\0");
+  max31855_thermocouple = max31855_thc_to_number(max31855_thermocouple);
+  max31855_ref          = max31855_ref_to_number(max31855_ref);
+
   prints("THC");
   printhexword(max31855_thermocouple);
   prints("\0");
@@ -272,13 +320,25 @@ void send_temperature(void){
     if(max31855_faults & OC_FAULT_MASK)
       prints("OC");
     prints("\0"); 
+
+    return max31855_thermocouple;
   }
 
   
   return;
 }
 
+uint16_t uC_temp(){
+  uint16_t uc_temp = calc_uC_temp();
+  prints("UCT");
+  printhexword(uc_temp);
+  prints("\0");
+  return uc_temp;
+}
+
 void main(void) {
+  uint16_t thermocouple_temp = 0;
+  uint16_t uc_temp = 0;
   timeout = 3000;
   init();
 
@@ -294,9 +354,10 @@ void main(void) {
 
 
   for(;;) { // main loop
-    //update_system_state();
-    //send_temperature();
-    calc_uC_temp();
+    thermocouple_temp = max31855_temperature();
+    uc_temp = uC_temp();
+    update_system_state();
+    
 
     __RESET_WATCHDOG(); /* feeds the dog */
   } /* loop forever */

@@ -67,6 +67,19 @@
 #define _2_M1_MASK                   0b0000000000000010
 #define _2_M2_MASK                   0b0000000000000001
 
+#define REF_SIGN_MASK                0b0000100000000000
+#define REF_2_6_MASK                 0b0000010000000000
+#define REF_2_5_MASK                 0b0000001000000000
+#define REF_2_4_MASK                 0b0000000100000000
+#define REF_2_3_MASK                 0b0000000010000000
+#define REF_2_2_MASK                 0b0000000001000000
+#define REF_2_1_MASK                 0b0000000000100000
+#define REF_2_0_MASK                 0b0000000000010000
+#define REF_2_M1_MASK                0b0000000000001000
+#define REF_2_M2_MASK                0b0000000000000100
+#define REF_2_M3_MASK                0b0000000000000010
+#define REF_2_M4_MASK                0b0000000000000001
+
 #define MAX31855_THERMO_MASK        0xFFFC0000
 #define MAX31855_REF_MASK           0x0000FFF8
 #define MAX31855_FAULT_FLAG_MASK   0x00010000
@@ -76,6 +89,12 @@
 #define SCG_FAULT_MASK              0b0010
 #define OC_FAULT_MASK               0b0001
 
+#define UC_THERMAL_RESISTANCE       5
+#define AERO_THERMAL_LIMIT          50      // #FIXME this needs to be a real number
+
+
+int16_t max31855_thc_to_number(uint16_t data);
+int16_t max31855_ref_to_number(uint16_t data);
 
 // LBKDIE = 0 | RXEDGIE = 1 |
 
