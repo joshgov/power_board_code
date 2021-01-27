@@ -17,8 +17,8 @@ typedef enum {
     SYSTEM_ERROR      = 0x00, 
     STARTUP           = 0x1F, 
     READY             = 0x21, 
-    TEMP_FAULT        = 0x3E,
-    RPI_REBOOT        = 0x42  
+    MAIN              = 0x3E,
+    RPI_OFF           = 0x42  
 } SYSTEM_STATE;
 
 // System state enums are magic numbers with minimum hamming distance of 5 bits from each other.

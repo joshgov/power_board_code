@@ -6,7 +6,7 @@
 
 extern struct _STATE STATE;
 extern void init_global_vars(void);
-void update_system_state(void);
+void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp);
 void wait(uint16_t waittime);
 
 /***************************************************************************
@@ -56,7 +56,7 @@ void init(void){
     init_SPI();
     init_TPM1();
     init_TPM2();
-    update_system_state();
+    update_system_state(0, 0);
     
 }
 
@@ -118,44 +118,44 @@ void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp){
     case READY:
         set_rpi_relay(RELAY_ON);
         set_aero_relay(RELAY_ON);
-        blue_led = ON;
+
         if(rpi_aero_input == 0){
             wait(10);  // wait 10 ms and re-read the pin to make sure it's not bouncing
           if(rpi_aero_input == 0)
-            STATE.system_state = (TEMP_FAULT);
+            STATE.system_state = (MAIN);
         }
         if(rpi_rpi_input == 0){
           wait(10);
           if(rpi_rpi_input == 0)
-            STATE.system_state = (RPI_REBOOT);
+            STATE.system_state = (MAIN);
         }
         break;
     
-    case TEMP_FAULT:
-        set_aero_relay(RELAY_OFF);
-        blue_led = OFF;
-
-        if (thermocouple_temp < AERO_THERMAL_LIMIT){
-        
-          if(rpi_aero_input == 1){
-            wait(10);
-            if(rpi_aero_input == 1)
-              STATE.system_state = (READY);
-          }
-        }
-        break;
-        
-    case RPI_REBOOT:
-        set_rpi_relay(RELAY_OFF);
-        blue_led = OFF;
-        wait(100);
+    case MAIN:
         blue_led = ON;
 
-        if(rpi_rpi_input == 1){
-          wait(10);
-          if(rpi_rpi_input == 1)
-            STATE.system_state = (READY);
+        if(rpi_aero_input == 0){
+          wait(10);               // wait 10 seconds to see if the value has settled
+          if(rpi_aero_input == 0){
+            set_aero_relay(RELAY_OFF);
+          }
         }
+        else{
+          if(thermocouple_temp < AERO_THERMAL_LIMIT){
+            set_aero_relay(RELAY_ON);
+          }
+        }
+
+        if(rpi_rpi_input == 0){
+          wait(10);           // wait 10 seconds to see if the value has settled
+          if(rpi_rpi_input == 0){
+            set_rpi_relay(RELAY_OFF);
+          }
+        }
+        else{
+          set_rpi_relay(RELAY_ON);
+        }
+
         break;
     
     default: 
@@ -304,9 +304,9 @@ uint16_t max31855_temperature(void){
   prints("THC");
   printhexword(max31855_thermocouple);
   prints("\0");
-  prints("REF");
-  printhexword(max31855_ref);
-  prints("\0");
+  // prints("REF");
+  // printhexword(max31855_ref);
+  // prints("\0");
 
   if(max31855_fault_flag){
     // check what errors we have
@@ -356,7 +356,7 @@ void main(void) {
   for(;;) { // main loop
     thermocouple_temp = max31855_temperature();
     uc_temp = uC_temp();
-    update_system_state();
+    update_system_state(0, 0);
     
 
     __RESET_WATCHDOG(); /* feeds the dog */

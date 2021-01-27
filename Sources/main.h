@@ -90,7 +90,8 @@
 #define OC_FAULT_MASK               0b0001
 
 #define UC_THERMAL_RESISTANCE       5
-#define AERO_THERMAL_LIMIT          50      // #FIXME this needs to be a real number
+#define AERO_THERMAL_LIMIT          83      // #FIXME this needs to be a real number
+#define COLD_THERMAL_LIMIT          0
 
 
 int16_t max31855_thc_to_number(uint16_t data);
