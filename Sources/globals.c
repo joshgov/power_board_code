@@ -1,5 +1,5 @@
 #include "globals.h"
-volatile struct _STATE STATE;
+extern struct _STATE STATE;
 
 void init_global_vars(void){
 

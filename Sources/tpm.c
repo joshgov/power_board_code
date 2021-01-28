@@ -1,6 +1,9 @@
 #include "tpm.h"
 
 uint8_t g_slow_start_flag = True;
+extern struct _STATE STATE;
+extern uint16_t thermocouple_temp;
+extern uint8_t g_aero_hot_flag;
 
 void init_TPM2(void){
     SOPT2_T2CH0PS = 1;
@@ -32,6 +35,14 @@ void init_TPM1(void){ // setup for 1KHz interrupt 1ms intervals
 void interrupt VectorNumber_Vtpm1ovf tpm1_overflow_isr(void){
     TPM1SC_TOF = 0;
     if(timeout) timeout--;
+    if(!timeout){
+        if(thermocouple_temp >= AERO_THERMAL_LIMIT){ 
+            STATE.system_state = (AERO_HOT);
+        }
+        if( (thermocouple_temp <= AERO_THERMAL_OK_LIMIT) & g_aero_hot_flag){
+             STATE.system_state = (AERO_COOL);
+        }
+    }
     return;
 }
 
@@ -48,12 +59,12 @@ void interrupt VectorNumber_Vtpm2ovf tpm2_overflow_isr(void){
         if(temperature < COLD_THERMAL_LIMIT){
             // #FIXME might need to add hysterious to stop it from oscillating at the limit.
             // maybe set timeout to some value so you have to wait a certain amount of time. 
-            TPM2C0V = 0;
-            TPM2C1V = 0;
-        }
-        else{
             TPM2C0V = 1023;
             TPM2C1V = 1023;
+        }
+        if(temperature > COLD_THERMAL_TURN_ON_LIMIT){
+            TPM2C0V = 2047;
+            TPM2C1V = 2047;
         }
 
     }

@@ -18,7 +18,8 @@ typedef enum {
     STARTUP           = 0x1F, 
     READY             = 0x21, 
     MAIN              = 0x3E,
-    RPI_OFF           = 0x42  
+    AERO_HOT          = 0x42,
+    AERO_COOL         = 0x55  
 } SYSTEM_STATE;
 
 // System state enums are magic numbers with minimum hamming distance of 5 bits from each other.

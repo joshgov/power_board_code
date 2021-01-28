@@ -4,9 +4,9 @@
  *  GLOBAL STRUCTURE PROTOTYPES
  ***************************************************************************/
 
-extern struct _STATE STATE;
+struct _STATE STATE;
 extern void init_global_vars(void);
-void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp);
+void update_system_state(uint16_t uc_temp);
 void wait(uint16_t waittime);
 
 /***************************************************************************
@@ -20,6 +20,8 @@ void wait(uint16_t waittime);
   uint16_t supply_voltage;
   uint16_t timeout;
   uint16_t m_slope;
+  uint8_t  g_aero_hot_flag;
+  uint16_t thermocouple_temp;
 
 bool_t raw_key_pressed(){
     bool_t val = rpi_aero_input;
@@ -35,15 +37,6 @@ bool_t debounce_switch()
     return FALSE;
 }
 
-/*void interrupt VectorNumber_Vtpm1ovf tpm_time_up(void){
-    bool_t switch_state = debounce_switch();
-    if(switch_state)       // if there is a 0 on the line set TEMP_FAULT state
-       STATE.system_state = (TEMP_FAULT);
-    else
-       STATE.system_state = (
-    
-}*/
-
 void init(void){
     /* init code for the power board
        setup port directions, ADCs etc. */
@@ -56,7 +49,7 @@ void init(void){
     init_SPI();
     init_TPM1();
     init_TPM2();
-    update_system_state(0, 0);
+    update_system_state(0);  // #FIXME might need to change this and pass actual temperatures in.
     
 }
 
@@ -74,7 +67,7 @@ void set_rpi_relay(RELAY_STATE new_mode){
     case RELAY_ON:
         if (new_mode == RELAY_OFF){
           STATE.rpi_state = RELAY_OFF;
-          rpi_pwr_ctrl = OFF;
+          rpi_pwr_ctrl = OFF;          
         }
         break;    
     }
@@ -102,7 +95,7 @@ void set_aero_relay(RELAY_STATE new_mode){
     
 }
 
-void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp){
+void update_system_state(uint16_t uc_temp){
   switch(STATE.system_state)
 		{
 
@@ -110,7 +103,8 @@ void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp){
         set_rpi_relay(RELAY_OFF);
         set_aero_relay(RELAY_OFF);
 
-        green_led = ON;
+        green_led = OFF;
+        blue_led = OFF;
         STATE.system_state = (READY);
         break;
         
@@ -118,17 +112,17 @@ void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp){
     case READY:
         set_rpi_relay(RELAY_ON);
         set_aero_relay(RELAY_ON);
-
-        if(rpi_aero_input == 0){
-            wait(10);  // wait 10 ms and re-read the pin to make sure it's not bouncing
-          if(rpi_aero_input == 0)
-            STATE.system_state = (MAIN);
-        }
-        if(rpi_rpi_input == 0){
-          wait(10);
-          if(rpi_rpi_input == 0)
-            STATE.system_state = (MAIN);
-        }
+        // if(rpi_aero_input == 0){
+        //     wait(10);  // wait 10 ms and re-read the pin to make sure it's not bouncing
+        //   if(rpi_aero_input == 0)
+        //     STATE.system_state = (MAIN);
+        // }
+        // if(rpi_rpi_input == 0){
+        //   wait(10);
+        //   if(rpi_rpi_input == 0)
+        //     STATE.system_state = (MAIN);
+        // }
+        STATE.system_state = (MAIN);
         break;
     
     case MAIN:
@@ -141,7 +135,7 @@ void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp){
           }
         }
         else{
-          if(thermocouple_temp < AERO_THERMAL_LIMIT){
+          if(!g_aero_hot_flag){
             set_aero_relay(RELAY_ON);
           }
         }
@@ -157,6 +151,20 @@ void update_system_state(uint16_t thermocouple_temp, uint16_t uc_temp){
         }
 
         break;
+
+    case AERO_HOT:
+      set_aero_relay(RELAY_OFF);
+      green_led = ON;
+      g_aero_hot_flag = True;
+      STATE.system_state = (MAIN);
+      break;
+    
+    case AERO_COOL:
+      set_aero_relay(RELAY_ON);
+      green_led = OFF;
+      g_aero_hot_flag = False;
+      STATE.system_state = (MAIN);
+      break;
     
     default: 
         // we're in an unknown state AHHH! -- start over
@@ -320,15 +328,13 @@ uint16_t max31855_temperature(void){
     if(max31855_faults & OC_FAULT_MASK)
       prints("OC");
     prints("\0"); 
-
-    return max31855_thermocouple;
   }
 
   
-  return;
+  return max31855_thermocouple;
 }
 
-uint16_t uC_temp(){
+uint16_t get_uC_temp(){
   uint16_t uc_temp = calc_uC_temp();
   prints("UCT");
   printhexword(uc_temp);
@@ -337,9 +343,10 @@ uint16_t uC_temp(){
 }
 
 void main(void) {
-  uint16_t thermocouple_temp = 0;
   uint16_t uc_temp = 0;
-  timeout = 3000;
+  thermocouple_temp = 0;
+  timeout = 300;
+  g_aero_hot_flag = False;
   init();
 
   
@@ -348,15 +355,14 @@ void main(void) {
   sum_temp = 0; 
   sum_bandgap = 0;
 
-  blue_led = 1;
 
   EnableInterrupts;
 
 
   for(;;) { // main loop
     thermocouple_temp = max31855_temperature();
-    uc_temp = uC_temp();
-    update_system_state(0, 0);
+    uc_temp = get_uC_temp();
+    update_system_state(uc_temp);
     
 
     __RESET_WATCHDOG(); /* feeds the dog */
