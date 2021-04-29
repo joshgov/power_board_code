@@ -22,6 +22,8 @@ void wait(uint16_t waittime);
   uint16_t m_slope;
   uint8_t  g_aero_hot_flag;
   uint16_t thermocouple_temp;
+  uint16_t uc_temp;
+  uint16_t temperature_count;
 
 bool_t raw_key_pressed(){
     bool_t val = rpi_aero_input;
@@ -37,6 +39,15 @@ bool_t debounce_switch()
     return FALSE;
 }
 
+void turn_fan_on(){
+    PTADD_PTADD6 = OUTPUT;
+    PTAPE_PTAPE6 = 0;
+    PTAD_PTAD6 = 1;
+    PTADD_PTADD7 = OUTPUT;
+    PTAPE_PTAPE7 = 0;
+    PTAD_PTAD7 = 1;
+}
+
 void init(void){
     /* init code for the power board
        setup port directions, ADCs etc. */
@@ -48,7 +59,9 @@ void init(void){
     init_ADC();
     init_SPI();
     init_TPM1();
+    // wait(500);
     init_TPM2();
+    // turn_fan_on();
     update_system_state(0);  // #FIXME might need to change this and pass actual temperatures in.
     
 }
@@ -311,7 +324,8 @@ uint16_t max31855_temperature(void){
 
   prints("THC");
   printhexword(max31855_thermocouple);
-  prints("\0");
+  printhexword(0x00);
+  
   // prints("REF");
   // printhexword(max31855_ref);
   // prints("\0");
@@ -327,10 +341,11 @@ uint16_t max31855_temperature(void){
       prints("SCG");
     if(max31855_faults & OC_FAULT_MASK)
       prints("OC");
-    prints("\0"); 
+    printhexword(0x00);
+     
   }
 
-  
+  printhexword(0x0D);
   return max31855_thermocouple;
 }
 
@@ -338,15 +353,16 @@ uint16_t get_uC_temp(){
   uint16_t uc_temp = calc_uC_temp();
   prints("UCT");
   printhexword(uc_temp);
-  prints("\0");
+  printhexword(0x00);
   return uc_temp;
 }
 
 void main(void) {
-  uint16_t uc_temp = 0;
+  uc_temp = 0;
   thermocouple_temp = 0;
   timeout = 300;
   g_aero_hot_flag = False;
+  temperature_count = 0;
   init();
 
   
@@ -360,8 +376,8 @@ void main(void) {
 
 
   for(;;) { // main loop
-    thermocouple_temp = max31855_temperature();
-    uc_temp = get_uC_temp();
+    // thermocouple_temp = max31855_temperature();
+    // uc_temp = get_uC_temp();
     update_system_state(uc_temp);
     
 
