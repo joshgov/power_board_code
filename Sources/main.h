@@ -90,8 +90,8 @@
 #define OC_FAULT_MASK               0b0001
 
 #define UC_THERMAL_RESISTANCE       5
-#define AERO_THERMAL_LIMIT          8400      // #FIXME this needs to be a real number and needs to be 4 digits because themocouple data has 2 decimal places
-#define AERO_THERMAL_OK_LIMIT       5000      // #FIXME chosen because it's room temp.
+#define AERO_THERMAL_LIMIT          7900      // #FIXME this needs to be a real number and needs to be 4 digits because themocouple data has 2 decimal places
+#define AERO_THERMAL_OK_LIMIT       6000      // #FIXME chosen because it's room temp.
 #define COLD_THERMAL_LIMIT          -17
 #define COLD_THERMAL_TURN_ON_LIMIT  0
 

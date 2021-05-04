@@ -6,24 +6,24 @@
 
 struct _STATE STATE;
 extern void init_global_vars(void);
-void update_system_state(uint16_t uc_temp);
+void update_system_state();
 void wait(uint16_t waittime);
 
 /***************************************************************************
  *  GLOBAL STRUCTURE VARIABLES
  ***************************************************************************/
 
-  uint16_t average_temp, average_bandgap;
-  uint32_t sum_temp, sum_bandgap;
-  uint16_t temperature;
-  uint16_t reference_temp;
-  uint16_t supply_voltage;
+  int16_t average_temp, average_bandgap;
+  int32_t sum_temp, sum_bandgap;
+  int16_t temperature;
+  int16_t reference_temp;
+  int16_t supply_voltage;
   uint16_t timeout;
-  uint16_t m_slope;
+  int16_t m_slope;
   uint8_t  g_aero_hot_flag;
-  uint16_t thermocouple_temp;
-  uint16_t uc_temp;
-  uint16_t temperature_count;
+  int16_t thermocouple_temp;
+  int16_t uc_temp;
+  int16_t temperature_count;
 
 bool_t raw_key_pressed(){
     bool_t val = rpi_aero_input;
@@ -62,7 +62,7 @@ void init(void){
     // wait(500);
     init_TPM2();
     // turn_fan_on();
-    update_system_state(0);  // #FIXME might need to change this and pass actual temperatures in.
+    update_system_state();  // #FIXME might need to change this and pass actual temperatures in.
     
 }
 
@@ -108,7 +108,7 @@ void set_aero_relay(RELAY_STATE new_mode){
     
 }
 
-void update_system_state(uint16_t uc_temp){
+void update_system_state(){
   switch(STATE.system_state)
 		{
 
@@ -227,13 +227,13 @@ uint16_t calc_uC_temp(void){
       if(supply_voltage)
       {
           m_slope = 3266 / supply_voltage;
-          temperature = (uint16_t)25 - ((average_temp - reference_temp) * 100)/m_slope;
+          temperature = (int16_t)25 - ((average_temp - reference_temp) * 100)/m_slope;
       }
     }
     else{
         if(supply_voltage){
           m_slope = 3638 / supply_voltage;
-          temperature = (uint16_t)25 + ((reference_temp - average_temp) * 100)/m_slope;
+          temperature = (int16_t)25 + ((reference_temp - average_temp) * 100)/m_slope;
         }
     }
   }
@@ -324,7 +324,8 @@ uint16_t max31855_temperature(void){
 
   prints("THC");
   printhexword(max31855_thermocouple);
-  printhexword(0x00);
+  SCI_send_byte(0x0D);
+  //printhexword(0x00);
   
   // prints("REF");
   // printhexword(max31855_ref);
@@ -341,11 +342,12 @@ uint16_t max31855_temperature(void){
       prints("SCG");
     if(max31855_faults & OC_FAULT_MASK)
       prints("OC");
-    printhexword(0x00);
+    //printhexword(0x00);
+    SCI_send_byte(0x0D);
      
   }
 
-  printhexword(0x0D);
+  
   return max31855_thermocouple;
 }
 
@@ -353,7 +355,7 @@ uint16_t get_uC_temp(){
   uint16_t uc_temp = calc_uC_temp();
   prints("UCT");
   printhexword(uc_temp);
-  printhexword(0x00);
+  SCI_send_byte(0x0D);
   return uc_temp;
 }
 
@@ -378,7 +380,8 @@ void main(void) {
   for(;;) { // main loop
     // thermocouple_temp = max31855_temperature();
     // uc_temp = get_uC_temp();
-    update_system_state(uc_temp);
+    // SCI_send_byte(0x0D);
+    update_system_state();
     
 
     __RESET_WATCHDOG(); /* feeds the dog */

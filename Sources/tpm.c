@@ -7,6 +7,10 @@ extern uint16_t thermocouple_temp;
 extern uint8_t g_aero_hot_flag;
 extern uint16_t temperature_count;
 extern uint16_t uc_temp;
+extern void wait(uint16_t waittime);
+extern uint16_t get_uC_temp();
+extern uint16_t max31855_temperature(void);
+extern uint16_t calc_uC_temp(void);
 
 void init_TPM2(void){
     SOPT2_T2CH0PS = 1;
@@ -74,10 +78,14 @@ void interrupt VectorNumber_Vtpm1ovf tpm1_overflow_isr(void){
         if( (thermocouple_temp <= AERO_THERMAL_OK_LIMIT) & g_aero_hot_flag){
              STATE.system_state = (AERO_COOL);
         }
-        if(temperature_count >= 8000){
+        if(temperature_count >= 8950){
             thermocouple_temp = max31855_temperature();
             uc_temp = get_uC_temp();
+            SCI_send_byte(0x0D);
             temperature_count = 0; 
+        }
+        else{
+            temperature_count += 1;
         }
     }
     return;
@@ -102,8 +110,8 @@ void interrupt VectorNumber_Vtpm2ovf tpm2_overflow_isr(void){
         if(temperature < COLD_THERMAL_LIMIT){
             // #FIXME might need to add hysterious to stop it from oscillating at the limit.
             // maybe set timeout to some value so you have to wait a certain amount of time. 
-            TPM2C0V = 1023;
-            TPM2C1V = 1023;
+            TPM2C0V = 0;
+            TPM2C1V = 0;
         }
         if(temperature > COLD_THERMAL_TURN_ON_LIMIT){
             TPM2C0V = 2047;
