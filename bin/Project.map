@@ -31,7 +31,7 @@ _startupData is allocated at 0x8084 and uses 6 Bytes
 extern struct _tagStartup {
   unsigned nofZeroOut     1
   _Range   pZeroOut       0x100     40
-  _Copy    *toCopyDownBeg 0x8D2A
+  _Copy    *toCopyDownBeg 0x8C27
 } _startupData;
 
 *********************************************************************************************
@@ -41,8 +41,8 @@ Section Name                    Size  Type     From       To       Segment
 .init                            132     R     0x8000     0x8083   ROM
 .startData                        14     R     0x8084     0x8091   ROM
 .rodata1                          23     R     0x8092     0x80A8   ROM
-.text                           3201     R     0x80A9     0x8D29   ROM
-.copy                              2     R     0x8D2A     0x8D2B   ROM
+.text                           2942     R     0x80A9     0x8C26   ROM
+.copy                              2     R     0x8C27     0x8C28   ROM
 .abs_section_0                     1   N/I        0x0        0x0   .absSeg0
 .abs_section_1                     1   N/I        0x1        0x1   .absSeg1
 .abs_section_2                     1   N/I        0x2        0x2   .absSeg2
@@ -149,7 +149,7 @@ Section Name                    Size  Type     From       To       Segment
 .vectSeg100_vect                   2     R     0xFFFE     0xFFFF   .vectSeg100
 
 Summary of section sizes per section type:
-READ_ONLY (R):         D3C (dec:     3388)
+READ_ONLY (R):         C39 (dec:     3129)
 READ_WRITE (R/W):       A8 (dec:      168)
 NO_INIT (N/I):          6C (dec:      108)
 
@@ -172,11 +172,11 @@ MODULE:                 -- main.c.o --
      wait                                      81B1      37      55       2   .text       
      calc_uC_temp                              81E8      CC     204       3   .text       
      ipow                                      82B4      40      64      18   .text       
-     max31855_thc_to_number                    82F4     23D     573      13   .text       
-     max31855_ref_to_number                    8531     19F     415       7   .text       
-     max31855_temperature                      86D0      B4     180       1   .text       
-     get_uC_temp                               8784      1D      29       1   .text       
-     main                                      87A1      3C      60       1   .text       
+     max31855_thc_to_number                    82F4      CE     206       1   .text       
+     max31855_ref_to_number                    83C2     19F     415       7   .text       
+     max31855_temperature                      8561      C1     193       1   .text       
+     get_uC_temp                               8622      28      40       1   .text       
+     main                                      864A      3C      60       1   .text       
 - VARIABLES:
      STRING.THC.2                              8092       4       4       1   .rodata1    
      STRING.FTS.3                              8096       4       4       1   .rodata1    
@@ -196,30 +196,32 @@ MODULE:                 -- main.c.o --
      m_slope                                    11F       2       2       2   .common     
      g_aero_hot_flag                            121       1       1       4   .common     
      thermocouple_temp                          122       2       2       4   .common     
-     uc_temp                                    124       2       2       2   .common     
+     uc_temp                                    124       2       2       7   .common     
      temperature_count                          126       2       2       4   .common     
 MODULE:                 -- RTSHC08.C.o (ansiis.lib) --
 - PROCEDURES:
-     _PUSH_ARGS_L                              87DD      20      32       2   .text       
-     _ENTER_UNARY_L                            87FD      29      41       1   .text       
-     _ENTER_BINARY_L                           8826      16      22       3   .text       
-     _ENTER_BINARY_L_RC                        883C      19      25       1   .text       
-     _IDIVMOD                                  8855      69     105       1   .text       
-     _LADD_k_is_k_plus_j                       88BE      1F      31       1   .text       
-     _LSUB_k_is_k_minus_j                      88DD      1F      31       1   .text       
-     _LAND_k_is_k_and_j                        88FC      1F      31       1   .text       
-     _LOR_k_is_k_or_j                          891B      1F      31       1   .text       
-     _IMUL_STAR08                              893A      27      39      17   .text       
-     _IDIVU_STAR08                             8961       D      13       2   .text       
-     _ILSR                                     896E       C      12      10   .text       
-     _LADD                                     897A       6       6       2   .text       
-     _LSUB                                     8980       6       6       2   .text       
-     _LAND_RC                                  8986       6       6       1   .text       
-     _LOR                                      898C       6       6       3   .text       
-     _LLSL                                     8992      16      22       3   .text       
-     _COPY                                     89A8      30      48       1   .text       
-     _POP32                                    89D8      1A      26       3   .text       
-     _Search_Table_8_Offset                    89F2      25      37       1   .text       
+     _PUSH_ARGS_L                              8686      20      32       2   .text       
+     _ENTER_UNARY_L                            86A6      29      41       1   .text       
+     _ENTER_BINARY_L                           86CF      16      22       3   .text       
+     _ENTER_BINARY_L_RC                        86E5      19      25       1   .text       
+     _IDIVMOD                                  86FE      69     105       1   .text       
+     _SPLITSIGN                                8767      1C      28       1   .text       
+     _LADD_k_is_k_plus_j                       8783      1F      31       1   .text       
+     _LSUB_k_is_k_minus_j                      87A2      1F      31       1   .text       
+     _LAND_k_is_k_and_j                        87C1      1F      31       1   .text       
+     _LOR_k_is_k_or_j                          87E0      1F      31       1   .text       
+     _IMUL_STAR08                              87FF      27      39      10   .text       
+     _IDIVS_STAR08                             8826      1B      27       2   .text       
+     _ILSR                                     8841       C      12       4   .text       
+     _LADD                                     884D       6       6       2   .text       
+     _LSUB                                     8853       6       6       2   .text       
+     _LAND_RC                                  8859       6       6       1   .text       
+     _LOR                                      885F       6       6       3   .text       
+     _LLSL                                     8865      16      22       3   .text       
+     _COPY                                     887B      30      48       1   .text       
+     _POP32                                    88AB      1A      26       3   .text       
+     _SEXT16_32                                88C5       D      13       2   .text       
+     _Search_Table_8_Offset                    88D2      25      37       1   .text       
 - VARIABLES:
 MODULE:                 -- MC9S08SH32.C.o --
 - PROCEDURES:
@@ -328,46 +330,47 @@ MODULE:                 -- Start08.c.o --
      __SEG_END_SSTACK                           1A8       0       0       1               
 MODULE:                 -- hardware.c.o --
 - PROCEDURES:
-     init_ports                                8A17      5F      95       1   .text       
-     init_bus_speed                            8A76      25      37       1   .text       
+     init_ports                                88F7      5F      95       1   .text       
+     init_bus_speed                            8956      25      37       1   .text       
 - VARIABLES:
 MODULE:                 -- globals.c.o --
 - PROCEDURES:
-     init_global_vars                          8A9B      15      21       1   .text       
+     init_global_vars                          897B      15      21       1   .text       
 - VARIABLES:
 MODULE:                 -- sci.c.o --
 - PROCEDURES:
-     init_SCI                                  8AB0       B      11       1   .text       
-     SCI_send_byte                             8ABB       A      10       6   .text       
-     nibble2asc                                8AC5       A      10       1   .text       
-     printhexbyte                              8ACF      10      16       2   .text       
-     printhexword                              8ADF       E      14       2   .text       
-     prints                                    8AED      19      25       6   .text       
+     init_SCI                                  8990       B      11       1   .text       
+     SCI_send_byte                             899B       A      10       7   .text       
+     nibble2asc                                89A5       A      10       1   .text       
+     printhexbyte                              89AF      10      16       2   .text       
+     printhexword_negative                     89BF      16      22       2   .text       
+     printhexword                              89D5       E      14       3   .text       
+     prints                                    89E3      1A      26       6   .text       
 - VARIABLES:
 MODULE:                 -- adc.c.o --
 - PROCEDURES:
-     init_ADC                                  8B06      12      18       1   .text       
-     ConvertATD                                8B18       B      11       2   .text       
-     adc_isr                                   8B23      70     112       1   .text       
+     init_ADC                                  89FD      12      18       1   .text       
+     ConvertATD                                8A0F       B      11       2   .text       
+     adc_isr                                   8A1A      76     118       1   .text       
 - VARIABLES:
      adc_seq.1                                  100       1       1       3   .bss        
      _Vector_23                                FFD0       2       2       0   .abs_section_ffd0
 MODULE:                 -- spi.c.o --
 - PROCEDURES:
-     init_SPI                                  8B93       B      11       1   .text       
-     SPI_transcieve_byte                       8B9E      11      17       1   .text       
-     SPI_read_MAX31855                         8BAF      A1     161       1   .text       
+     init_SPI                                  8A90       B      11       1   .text       
+     SPI_transcieve_byte                       8A9B      11      17       1   .text       
+     SPI_read_MAX31855                         8AAC      A1     161       1   .text       
 - VARIABLES:
 MODULE:                 -- tpm.c.o --
 - PROCEDURES:
-     init_TPM2                                 8C50      1E      30       1   .text       
-     init_TPM1                                 8C6E      1E      30       1   .text       
-     tpm1_overflow_isr                         8C8C      66     102       1   .text       
-     tpm1_channel0_isr                         8CF2       5       5       1   .text       
-     tpm1_channel1_isr                         8CF7       5       5       1   .text       
-     tpm2_overflow_isr                         8CFC      24      36       1   .text       
-     tpm2_channel0_isr                         8D20       5       5       1   .text       
-     tpm2_channel1_isr                         8D25       5       5       1   .text       
+     init_TPM2                                 8B4D      1E      30       1   .text       
+     init_TPM1                                 8B6B      1E      30       1   .text       
+     tpm1_overflow_isr                         8B89      66     102       1   .text       
+     tpm1_channel0_isr                         8BEF       5       5       1   .text       
+     tpm1_channel1_isr                         8BF4       5       5       1   .text       
+     tpm2_overflow_isr                         8BF9      24      36       1   .text       
+     tpm2_channel0_isr                         8C1D       5       5       1   .text       
+     tpm2_channel1_isr                         8C22       5       5       1   .text       
 - VARIABLES:
      _Vector_11                                FFE8       2       2       0   .abs_section_ffe8
      _Vector_5                                 FFF4       2       2       0   .abs_section_fff4
@@ -380,14 +383,14 @@ MODULE:                 -- tpm.c.o --
 MODULE STATISTIC
   Name                                      Data   Code  Const
 ---------------------------------------------------------------------------------------------
-  main.c.o                                    39   1844     23
-  RTSHC08.C.o (ansiis.lib)                     0    570      0
+  main.c.o                                    39   1501     23
+  RTSHC08.C.o (ansiis.lib)                     0    625      0
   MC9S08SH32.C.o                             108      0      0
   Start08.c.o                                  0    132      0
   hardware.c.o                                 0    132      0
   globals.c.o                                  0     21      0
-  sci.c.o                                      0     86      0
-  adc.c.o                                      1    141      2
+  sci.c.o                                      0    109      0
+  adc.c.o                                      1    147      2
   spi.c.o                                      0    189      0
   tpm.c.o                                      0    218     12
   other                                      128     16      2
@@ -399,14 +402,14 @@ SECTION: ".text"
   init set_rpi_relay set_aero_relay update_system_state wait calc_uC_temp ipow 
   max31855_thc_to_number max31855_ref_to_number max31855_temperature 
   get_uC_temp main _PUSH_ARGS_L _ENTER_UNARY_L _ENTER_BINARY_L 
-  _ENTER_BINARY_L_RC _IDIVMOD _LADD_k_is_k_plus_j _LSUB_k_is_k_minus_j 
-  _LAND_k_is_k_and_j _LOR_k_is_k_or_j _IMUL_STAR08 _IDIVU_STAR08 _ILSR _LADD 
-  _LSUB _LAND_RC _LOR _LLSL _COPY _POP32 _Search_Table_8_Offset init_ports 
-  init_bus_speed init_global_vars init_SCI SCI_send_byte nibble2asc 
-  printhexbyte printhexword prints init_ADC ConvertATD adc_isr init_SPI 
-  SPI_transcieve_byte SPI_read_MAX31855 init_TPM2 init_TPM1 tpm1_overflow_isr 
-  tpm1_channel0_isr tpm1_channel1_isr tpm2_overflow_isr tpm2_channel0_isr 
-  tpm2_channel1_isr 
+  _ENTER_BINARY_L_RC _IDIVMOD _SPLITSIGN _LADD_k_is_k_plus_j 
+  _LSUB_k_is_k_minus_j _LAND_k_is_k_and_j _LOR_k_is_k_or_j _IMUL_STAR08 
+  _IDIVS_STAR08 _ILSR _LADD _LSUB _LAND_RC _LOR _LLSL _COPY _POP32 _SEXT16_32 
+  _Search_Table_8_Offset init_ports init_bus_speed init_global_vars init_SCI 
+  SCI_send_byte nibble2asc printhexbyte printhexword_negative printhexword 
+  prints init_ADC ConvertATD adc_isr init_SPI SPI_transcieve_byte 
+  SPI_read_MAX31855 init_TPM2 init_TPM1 tpm1_overflow_isr tpm1_channel0_isr 
+  tpm1_channel1_isr tpm2_overflow_isr tpm2_channel0_isr tpm2_channel1_isr 
 SECTION: ".bss"
   adc_seq.1 
 SECTION: ".init"
@@ -693,7 +696,7 @@ OBJECT LIST SORTED BY ADDRESS
      m_slope                                    11F       2       2       2   .common     
      g_aero_hot_flag                            121       1       1       4   .common     
      thermocouple_temp                          122       2       2       4   .common     
-     uc_temp                                    124       2       2       2   .common     
+     uc_temp                                    124       2       2       7   .common     
      temperature_count                          126       2       2       4   .common     
      _SRS                                      1800       1       1       2   .abs_section_1800
      _SBDFR                                    1801       1       1       0   .abs_section_1801
@@ -746,54 +749,57 @@ OBJECT LIST SORTED BY ADDRESS
      wait                                      81B1      37      55       2   .text       
      calc_uC_temp                              81E8      CC     204       3   .text       
      ipow                                      82B4      40      64      18   .text       
-     max31855_thc_to_number                    82F4     23D     573      13   .text       
-     max31855_ref_to_number                    8531     19F     415       7   .text       
-     max31855_temperature                      86D0      B4     180       1   .text       
-     get_uC_temp                               8784      1D      29       1   .text       
-     main                                      87A1      3C      60       1   .text       
-     _PUSH_ARGS_L                              87DD      20      32       2   .text       
-     _ENTER_UNARY_L                            87FD      29      41       1   .text       
-     _ENTER_BINARY_L                           8826      16      22       3   .text       
-     _ENTER_BINARY_L_RC                        883C      19      25       1   .text       
-     _IDIVMOD                                  8855      69     105       1   .text       
-     _LADD_k_is_k_plus_j                       88BE      1F      31       1   .text       
-     _LSUB_k_is_k_minus_j                      88DD      1F      31       1   .text       
-     _LAND_k_is_k_and_j                        88FC      1F      31       1   .text       
-     _LOR_k_is_k_or_j                          891B      1F      31       1   .text       
-     _IMUL_STAR08                              893A      27      39      17   .text       
-     _IDIVU_STAR08                             8961       D      13       2   .text       
-     _ILSR                                     896E       C      12      10   .text       
-     _LADD                                     897A       6       6       2   .text       
-     _LSUB                                     8980       6       6       2   .text       
-     _LAND_RC                                  8986       6       6       1   .text       
-     _LOR                                      898C       6       6       3   .text       
-     _LLSL                                     8992      16      22       3   .text       
-     _COPY                                     89A8      30      48       1   .text       
-     _POP32                                    89D8      1A      26       3   .text       
-     _Search_Table_8_Offset                    89F2      25      37       1   .text       
-     init_ports                                8A17      5F      95       1   .text       
-     init_bus_speed                            8A76      25      37       1   .text       
-     init_global_vars                          8A9B      15      21       1   .text       
-     init_SCI                                  8AB0       B      11       1   .text       
-     SCI_send_byte                             8ABB       A      10       6   .text       
-     nibble2asc                                8AC5       A      10       1   .text       
-     printhexbyte                              8ACF      10      16       2   .text       
-     printhexword                              8ADF       E      14       2   .text       
-     prints                                    8AED      19      25       6   .text       
-     init_ADC                                  8B06      12      18       1   .text       
-     ConvertATD                                8B18       B      11       2   .text       
-     adc_isr                                   8B23      70     112       1   .text       
-     init_SPI                                  8B93       B      11       1   .text       
-     SPI_transcieve_byte                       8B9E      11      17       1   .text       
-     SPI_read_MAX31855                         8BAF      A1     161       1   .text       
-     init_TPM2                                 8C50      1E      30       1   .text       
-     init_TPM1                                 8C6E      1E      30       1   .text       
-     tpm1_overflow_isr                         8C8C      66     102       1   .text       
-     tpm1_channel0_isr                         8CF2       5       5       1   .text       
-     tpm1_channel1_isr                         8CF7       5       5       1   .text       
-     tpm2_overflow_isr                         8CFC      24      36       1   .text       
-     tpm2_channel0_isr                         8D20       5       5       1   .text       
-     tpm2_channel1_isr                         8D25       5       5       1   .text       
+     max31855_thc_to_number                    82F4      CE     206       1   .text       
+     max31855_ref_to_number                    83C2     19F     415       7   .text       
+     max31855_temperature                      8561      C1     193       1   .text       
+     get_uC_temp                               8622      28      40       1   .text       
+     main                                      864A      3C      60       1   .text       
+     _PUSH_ARGS_L                              8686      20      32       2   .text       
+     _ENTER_UNARY_L                            86A6      29      41       1   .text       
+     _ENTER_BINARY_L                           86CF      16      22       3   .text       
+     _ENTER_BINARY_L_RC                        86E5      19      25       1   .text       
+     _IDIVMOD                                  86FE      69     105       1   .text       
+     _SPLITSIGN                                8767      1C      28       1   .text       
+     _LADD_k_is_k_plus_j                       8783      1F      31       1   .text       
+     _LSUB_k_is_k_minus_j                      87A2      1F      31       1   .text       
+     _LAND_k_is_k_and_j                        87C1      1F      31       1   .text       
+     _LOR_k_is_k_or_j                          87E0      1F      31       1   .text       
+     _IMUL_STAR08                              87FF      27      39      10   .text       
+     _IDIVS_STAR08                             8826      1B      27       2   .text       
+     _ILSR                                     8841       C      12       4   .text       
+     _LADD                                     884D       6       6       2   .text       
+     _LSUB                                     8853       6       6       2   .text       
+     _LAND_RC                                  8859       6       6       1   .text       
+     _LOR                                      885F       6       6       3   .text       
+     _LLSL                                     8865      16      22       3   .text       
+     _COPY                                     887B      30      48       1   .text       
+     _POP32                                    88AB      1A      26       3   .text       
+     _SEXT16_32                                88C5       D      13       2   .text       
+     _Search_Table_8_Offset                    88D2      25      37       1   .text       
+     init_ports                                88F7      5F      95       1   .text       
+     init_bus_speed                            8956      25      37       1   .text       
+     init_global_vars                          897B      15      21       1   .text       
+     init_SCI                                  8990       B      11       1   .text       
+     SCI_send_byte                             899B       A      10       7   .text       
+     nibble2asc                                89A5       A      10       1   .text       
+     printhexbyte                              89AF      10      16       2   .text       
+     printhexword_negative                     89BF      16      22       2   .text       
+     printhexword                              89D5       E      14       3   .text       
+     prints                                    89E3      1A      26       6   .text       
+     init_ADC                                  89FD      12      18       1   .text       
+     ConvertATD                                8A0F       B      11       2   .text       
+     adc_isr                                   8A1A      76     118       1   .text       
+     init_SPI                                  8A90       B      11       1   .text       
+     SPI_transcieve_byte                       8A9B      11      17       1   .text       
+     SPI_read_MAX31855                         8AAC      A1     161       1   .text       
+     init_TPM2                                 8B4D      1E      30       1   .text       
+     init_TPM1                                 8B6B      1E      30       1   .text       
+     tpm1_overflow_isr                         8B89      66     102       1   .text       
+     tpm1_channel0_isr                         8BEF       5       5       1   .text       
+     tpm1_channel1_isr                         8BF4       5       5       1   .text       
+     tpm2_overflow_isr                         8BF9      24      36       1   .text       
+     tpm2_channel0_isr                         8C1D       5       5       1   .text       
+     tpm2_channel1_isr                         8C22       5       5       1   .text       
      _Vector_23                                FFD0       2       2       0   .abs_section_ffd0
      _Vector_14                                FFE2       2       2       0   .abs_section_ffe2
      _Vector_13                                FFE4       2       2       0   .abs_section_ffe4
@@ -810,22 +816,22 @@ main.c.o:
   raw_key_pressed debounce_switch turn_fan_on 
 RTSHC08.C.o (ansiis.lib):
   _PUSH_ARGS_D _ENTER_UNARY_L64 _ENTER_UNARY_L64_4 _ENTER_BINARY_L_LC 
-  _ENTER_BINARY_L64 _ENTER_BINARY_L64_LC _ENTER_BINARY_L64_RC _SPLITSIGN 
-  _k_is_k_plus_j_l _k_is_k_plus_j_i _LXOR_k_is_k_xor_j _LMUL_k_is_k_mul_j 
-  _LDIVMOD _NEG_L_HX _ABS_L_HX _SPLITSIGN_L _LMODU_k_is_k_mod_j 
-  _LDIVU_k_is_k_div_j _LMODS_k_is_k_mod_j _LDIVS_k_is_k_div_j _LCMP_k_rel_j 
-  _CMP24_k_rel_j _BMULS _BDIVS _BMODS _IDIVS_STAR08 _IMODS_STAR08 _IMODU_STAR08 
-  _IDIVU_8 _IMODU_8 _IASR _ILSL _ICMP _LINC _LDEC _LNEG _LNOT _LADD_RC _LSUB_LC 
-  _LSUB_RC _LAND _LOR_RC _LXOR _LXOR_RC _LMUL _LMUL_RC _LDIVS _LDIVS_LC 
-  _LDIVS_RC _LDIVU _LDIVU_LC _LDIVU_RC _LMODS _LMODS_LC _LMODS_RC _LMODU 
-  _LMODU_LC _LMODU_RC _LASR _LLSR _LCMP _LCMP_RC _PUSH_ARGS_24 
-  _ENTER_BINARY_24_RC _ENTER_BINARY_24 _CMP24 _CMP24_RC _COPY_L _POP64 _STORE32 
-  _STORE64 _SEXT8_32 _SEXT16_32 _CALL_STAR08 _CALL_STAR08_FAR _Jump_Table_Addr 
-  _Jump_Table_Offset _Jump_Table_Header_Addr _Jump_Table_Header_Offset 
-  _Search_Table_16_Addr _Search_Table_16_Offset _Search_Table_8_Addr _PUSH_CC 
-  _POP_CC _CONV_FAR_TO_NEAR _CONV_FAR_TO_LINEAR _CONV_LINEAR_TO_FAR 
+  _ENTER_BINARY_L64 _ENTER_BINARY_L64_LC _ENTER_BINARY_L64_RC _k_is_k_plus_j_l 
+  _k_is_k_plus_j_i _LXOR_k_is_k_xor_j _LMUL_k_is_k_mul_j _LDIVMOD _NEG_L_HX 
+  _ABS_L_HX _SPLITSIGN_L _LMODU_k_is_k_mod_j _LDIVU_k_is_k_div_j 
+  _LMODS_k_is_k_mod_j _LDIVS_k_is_k_div_j _LCMP_k_rel_j _CMP24_k_rel_j _BMULS 
+  _BDIVS _BMODS _IDIVU_STAR08 _IMODS_STAR08 _IMODU_STAR08 _IDIVU_8 _IMODU_8 
+  _IASR _ILSL _ICMP _LINC _LDEC _LNEG _LNOT _LADD_RC _LSUB_LC _LSUB_RC _LAND 
+  _LOR_RC _LXOR _LXOR_RC _LMUL _LMUL_RC _LDIVS _LDIVS_LC _LDIVS_RC _LDIVU 
+  _LDIVU_LC _LDIVU_RC _LMODS _LMODS_LC _LMODS_RC _LMODU _LMODU_LC _LMODU_RC 
+  _LASR _LLSR _LCMP _LCMP_RC _PUSH_ARGS_24 _ENTER_BINARY_24_RC _ENTER_BINARY_24 
+  _CMP24 _CMP24_RC _COPY_L _POP64 _STORE32 _STORE64 _SEXT8_32 _CALL_STAR08 
+  _CALL_STAR08_FAR _Jump_Table_Addr _Jump_Table_Offset _Jump_Table_Header_Addr 
+  _Jump_Table_Header_Offset _Search_Table_16_Addr _Search_Table_16_Offset 
+  _Search_Table_8_Addr _PUSH_CC _POP_CC _CONV_FAR_TO_NEAR _CONV_FAR_TO_LINEAR 
+  _CONV_LINEAR_TO_FAR 
 sci.c.o:
-  printhex2word 
+  SCI_send_byte_signed printhexbyte_signed printhexword_signed printhex2word 
 adc.c.o:
   read_adc 
 spi.c.o:
@@ -843,7 +849,7 @@ tpm.c.o:
 *********************************************************************************************
 COPYDOWN SECTION
 ---------------------------------------------------------------------------------------------
-------- ROM-ADDRESS: 0x8D2A ---- SIZE       2 ---
+------- ROM-ADDRESS: 0x8C27 ---- SIZE       2 ---
 Filling bytes inserted
  0000
 
@@ -862,22 +868,23 @@ update_system_state       USES STATE _Search_Table_8_Offset _PTCD
 wait                      USES _SRS 
 calc_uC_temp              USES ConvertATD average_temp average_bandgap 
                                 calc_uC_temp supply_voltage reference_temp timeout m_slope 
-                                temperature _IMUL_STAR08 _IDIVU_STAR08 
+                                temperature _IMUL_STAR08 _IDIVS_STAR08 
 ipow                      USES _IMUL_STAR08 
-max31855_thc_to_number    USES ipow _ILSR _IMUL_STAR08 max31855_thc_to_number 
+max31855_thc_to_number    USES ipow _IMUL_STAR08 
 max31855_ref_to_number    USES ipow _ILSR _IMUL_STAR08 max31855_ref_to_number 
 max31855_temperature      USES SPI_read_MAX31855 _LAND_RC 
                                 max31855_thc_to_number max31855_ref_to_number STRING.THC.2 prints 
-                                printhexword SCI_send_byte STRING.FTS.3 STRING.SCV.4 
-                                STRING.SCG.5 STRING.OC.6 
-get_uC_temp               USES calc_uC_temp STRING.UCT.7 prints printhexword 
-                                SCI_send_byte 
+                                printhexword_negative printhexword SCI_send_byte STRING.FTS.3 
+                                STRING.SCV.4 STRING.SCG.5 STRING.OC.6 
+get_uC_temp               USES calc_uC_temp uc_temp STRING.UCT.7 prints 
+                                printhexword_negative printhexword SCI_send_byte 
 main                      USES uc_temp thermocouple_temp timeout 
                                 g_aero_hot_flag temperature_count init average_temp 
                                 average_bandgap sum_temp sum_bandgap update_system_state _SRS 
 _ENTER_BINARY_L           USES _PUSH_ARGS_L 
 _ENTER_BINARY_L_RC        USES _PUSH_ARGS_L 
-_IDIVU_STAR08             USES _IDIVMOD 
+_SPLITSIGN                USES _IDIVMOD 
+_IDIVS_STAR08             USES _SPLITSIGN 
 _LADD                     USES _ENTER_BINARY_L _LADD_k_is_k_plus_j 
 _LSUB                     USES _ENTER_BINARY_L _LSUB_k_is_k_minus_j 
 _LAND_RC                  USES _ENTER_BINARY_L_RC _LAND_k_is_k_and_j 
@@ -890,12 +897,13 @@ init_global_vars          USES STATE
 init_SCI                  USES _SCIBD _SCIC1 _SCIC2 
 SCI_send_byte             USES _SCIS1 _SCID 
 printhexbyte              USES nibble2asc SCI_send_byte 
+printhexword_negative     USES SCI_send_byte printhexword 
 printhexword              USES printhexbyte 
 prints                    USES SCI_send_byte 
 init_ADC                  USES _SPMSC1 _ADCCFG _ADCSC2 _APCTL1 _APCTL2 _ADCSC1 
 ConvertATD                USES _ADCSC1 _ADCSC2 _ADCR 
 adc_isr                   USES _PTCD adc_seq.1 _ADCR sum_temp _LADD 
-                                average_temp _LSUB _POP32 _ADCSC1 sum_bandgap 
+                                average_temp _SEXT16_32 _LSUB _POP32 _ADCSC1 sum_bandgap 
                                 average_bandgap 
 init_SPI                  USES _SPIC1 _SPIC2 _SPIBR _PTBD 
 SPI_transcieve_byte       USES _SPIS _SPID 
@@ -978,6 +986,8 @@ DEPENDENCY TREE
     |  |       
     |  +- _LADD_k_is_k_plus_j 
     |       
+    +- _SEXT16_32          
+    |    
     +- _LSUB               
     |  | 
     |  +- _ENTER_BINARY_L      (see above)
@@ -1024,30 +1034,34 @@ DEPENDENCY TREE
     |  |  |  | 
     |  |  |  +- _IMUL_STAR08        
     |  |  |       
-    |  |  +- _ILSR               
-    |  |  |    
     |  |  +- _IMUL_STAR08         (see above)
     |  |     
     |  +- max31855_ref_to_number
     |  |  | 
     |  |  +- ipow                 (see above)
     |  |  |  
-    |  |  +- _ILSR                (see above)
-    |  |  |  
+    |  |  +- _ILSR               
+    |  |  |    
     |  |  +- _IMUL_STAR08         (see above)
     |  |     
     |  +- prints              
     |  |  | 
     |  |  +- SCI_send_byte       
     |  |       
-    |  +- printhexword        
+    |  +- printhexword_negative
     |  |  | 
-    |  |  +- printhexbyte        
+    |  |  +- SCI_send_byte        (see above)
+    |  |  |  
+    |  |  +- printhexword        
     |  |     | 
-    |  |     +- nibble2asc          
-    |  |     |    
-    |  |     +- SCI_send_byte        (see above)
-    |  |        
+    |  |     +- printhexbyte        
+    |  |        | 
+    |  |        +- nibble2asc          
+    |  |        |    
+    |  |        +- SCI_send_byte        (see above)
+    |  |           
+    |  +- printhexword         (see above)
+    |  |  
     |  +- SCI_send_byte        (see above)
     |     
     +- get_uC_temp         
@@ -1058,11 +1072,15 @@ DEPENDENCY TREE
     |  |  |    
     |  |  +- _IMUL_STAR08         (see above)
     |  |  |  
-    |  |  +- _IDIVU_STAR08       
+    |  |  +- _IDIVS_STAR08       
     |  |     | 
-    |  |     +- _IDIVMOD            
-    |  |          
+    |  |     +- _SPLITSIGN          
+    |  |        | 
+    |  |        +- _IDIVMOD            
+    |  |             
     |  +- prints               (see above)
+    |  |  
+    |  +- printhexword_negative (see above)
     |  |  
     |  +- printhexword         (see above)
     |  |  
@@ -1097,5 +1115,5 @@ STATISTIC SECTION
 ExeFile:
 --------
 Number of blocks to be downloaded: 12
-Total size of all blocks to be downloaded: 3388
+Total size of all blocks to be downloaded: 3129
 

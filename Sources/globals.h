@@ -21,12 +21,12 @@ extern uint16_t temp_fault_count;
  *  GLOBAL ADC VARIABLES
  ***************************************************************************/
 
-  extern uint16_t average_temp, average_bandgap;
-  extern uint32_t sum_temp, sum_bandgap;
-  extern uint16_t temperature;
-  extern uint16_t reference_temp;
-  extern uint16_t supply_voltage;
+  extern int16_t average_temp, average_bandgap;
+  extern int32_t sum_temp, sum_bandgap;
+  extern int16_t temperature;
+  extern int16_t reference_temp;
+  extern int16_t supply_voltage;
   extern uint16_t timeout;
-  extern uint16_t m_slope;
+  extern int16_t m_slope;
 
 #endif

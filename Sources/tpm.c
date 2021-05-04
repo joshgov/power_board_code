@@ -3,14 +3,15 @@
 uint8_t g_slow_start_flag = True;
 uint8_t tpm2_flag = True;
 extern struct _STATE STATE;
-extern uint16_t thermocouple_temp;
+extern int16_t thermocouple_temp;
 extern uint8_t g_aero_hot_flag;
-extern uint16_t temperature_count;
-extern uint16_t uc_temp;
+extern int16_t temperature_count;
+extern int16_t uc_temp;
 extern void wait(uint16_t waittime);
-extern uint16_t get_uC_temp();
-extern uint16_t max31855_temperature(void);
-extern uint16_t calc_uC_temp(void);
+extern int16_t get_uC_temp();
+extern int16_t max31855_temperature(void);
+extern int16_t calc_uC_temp(void);
+
 
 void init_TPM2(void){
     SOPT2_T2CH0PS = 1;

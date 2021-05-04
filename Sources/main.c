@@ -197,7 +197,7 @@ void wait(uint16_t waittime)
   }
 
 
-uint16_t calc_uC_temp(void){
+int16_t calc_uC_temp(void){
 
   uint8_t multiplier = 10;
 
@@ -258,6 +258,13 @@ int ipow(int base, int exp)
 
 int16_t max31855_thc_to_number(uint16_t data){
   int16_t temp = 0;
+  uint8_t signed_flag = 0;
+  data = 0x3C18; //-250
+  if(data & SIGN_MASK){
+    signed_flag = 1;
+    data = ~data & 0x3FFF;
+    data = data + 1;
+  }
   temp = 
    ( ( (data & _2_10_MASK) >> 12) * ipow(2, 10) ) +\
    ( ( (data & _2_9_MASK) >> 11)  * ipow(2, 9)  ) +\
@@ -277,35 +284,66 @@ int16_t max31855_thc_to_number(uint16_t data){
    ( ( (data & _2_M1_MASK) >> 1 ) * 50) +\
    (   (data & _2_M2_MASK)        * 25);
 
-  temp = temp | (data & SIGN_MASK);  // add the sign bit onto the output
+  if(signed_flag) temp = -temp;
+  // temp = temp | (data & SIGN_MASK);  // add the sign bit onto the output
   return temp;
 }
 
 int16_t max31855_ref_to_number(uint16_t data){
-  int16_t temp = 0;
-  temp = 
-   ( ( (data & REF_2_6_MASK) >> 10) * ipow(2, 6) ) +\
-   ( ( (data & REF_2_5_MASK) >> 9)  * ipow(2, 5)  ) +\
-   ( ( (data & REF_2_4_MASK) >> 8)  * ipow(2, 4)  ) +\
-   ( ( (data & REF_2_3_MASK) >> 7 )  * ipow(2, 3)  ) +\
-   ( ( (data & REF_2_2_MASK) >> 6 )  * ipow(2, 2)  ) +\
-   ( ( (data & REF_2_1_MASK) >> 5 )  * ipow(2, 1)  ) +\
-   ( ( (data & REF_2_0_MASK) >> 4 )  * ipow(2, 0)  );
+  uint16_t temp = 0;
+  int16_t neg_temp = 0;
+  int16_t data_s = (int16_t)data;
+  // data_s = 0x3C30;
+  // if(data_s & 0x2000){
+  //   prints("-");
+  //   data_s = -data_s;
 
-  temp = temp * 100;        // add 2 significant digits for the decimal numbers
+  //   neg_temp = 
+  //   ( ( (data_s & REF_2_6_MASK) >> 10) * ipow(2, 6) ) +\
+  //   ( ( (data_s & REF_2_5_MASK) >> 9)  * ipow(2, 5)  ) +\
+  //   ( ( (data_s & REF_2_4_MASK) >> 8)  * ipow(2, 4)  ) +\
+  //   ( ( (data_s & REF_2_3_MASK) >> 7 )  * ipow(2, 3)  ) +\
+  //   ( ( (data_s & REF_2_2_MASK) >> 6 )  * ipow(2, 2)  ) +\
+  //   ( ( (data_s & REF_2_1_MASK) >> 5 )  * ipow(2, 1)  ) +\
+  //   ( ( (data_s & REF_2_0_MASK) >> 4 )  * ipow(2, 0)  );
+
+  //   neg_temp = neg_temp * 100;        // add 2 significant digits for the decimal numbers
 
 
-  // I drop 2 signficant figures because anything beyond 0.25C isn't very useful
-  temp = temp + ( ( (data & REF_2_M1_MASK) >> 3 )  * 50  );
-  temp = temp + ( ( (data & REF_2_M2_MASK) >> 2 )  * 25  );
+  //   // I drop 2 signficant figures because anything beyond 0.25C isn't very useful
+  //   neg_temp = neg_temp + ( ( (data_s & REF_2_M1_MASK) >> 3 )  * 50  );
+  //   neg_temp = neg_temp + ( ( (data_s & REF_2_M2_MASK) >> 2 )  * 25  );
 
-  // temp = temp | (data & REF_SIGN_MASK);  // add the sign bit onto the output
-  return temp;
+  //   // temp = temp | (data & REF_SIGN_MASK);  // add the sign bit onto the output
+  //   return neg_temp;
+
+  // }
+  // else{
+    temp = 
+    ( ( (data & REF_2_6_MASK) >> 10) * ipow(2, 6) ) +\
+    ( ( (data & REF_2_5_MASK) >> 9)  * ipow(2, 5)  ) +\
+    ( ( (data & REF_2_4_MASK) >> 8)  * ipow(2, 4)  ) +\
+    ( ( (data & REF_2_3_MASK) >> 7 )  * ipow(2, 3)  ) +\
+    ( ( (data & REF_2_2_MASK) >> 6 )  * ipow(2, 2)  ) +\
+    ( ( (data & REF_2_1_MASK) >> 5 )  * ipow(2, 1)  ) +\
+    ( ( (data & REF_2_0_MASK) >> 4 )  * ipow(2, 0)  );
+
+    temp = temp * 100;        // add 2 significant digits for the decimal numbers
+
+
+    // I drop 2 signficant figures because anything beyond 0.25C isn't very useful
+    temp = temp + ( ( (data & REF_2_M1_MASK) >> 3 )  * 50  );
+    temp = temp + ( ( (data & REF_2_M2_MASK) >> 2 )  * 25  );
+
+    // temp = temp | (data & REF_SIGN_MASK);  // add the sign bit onto the output
+    return temp;
+  // }
+  
 }
 
-uint16_t max31855_temperature(void){
+int16_t max31855_temperature(void){
   
-  uint16_t max31855_thermocouple = 0;
+  int16_t max31855_thermocouple = 0;
   uint16_t max31855_ref = 0;
   uint16_t max31855_fault_flag = 0;
   uint16_t max31855_faults = 0;
@@ -323,7 +361,8 @@ uint16_t max31855_temperature(void){
   max31855_ref          = max31855_ref_to_number(max31855_ref);
 
   prints("THC");
-  printhexword(max31855_thermocouple);
+  if(max31855_thermocouple < 0) printhexword_negative(max31855_thermocouple);
+  else printhexword(max31855_thermocouple);
   SCI_send_byte(0x0D);
   //printhexword(0x00);
   
@@ -351,10 +390,16 @@ uint16_t max31855_temperature(void){
   return max31855_thermocouple;
 }
 
-uint16_t get_uC_temp(){
-  uint16_t uc_temp = calc_uC_temp();
+int16_t get_uC_temp(){
+  uc_temp = calc_uC_temp();
   prints("UCT");
-  printhexword(uc_temp);
+  if(uc_temp < 0){
+    printhexword_negative(uc_temp);
+  }
+  else{
+    printhexword(uc_temp);
+  }
+  
   SCI_send_byte(0x0D);
   return uc_temp;
 }

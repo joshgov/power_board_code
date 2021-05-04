@@ -22,5 +22,8 @@ void printhexbyte( uint8_t n );
 void printhexword( uint16_t n );
 void printhex2word( uint32_t n);
 void prints(char const * s);
+void printhexbyte_signed(int8_t n);
+void printhexword_signed(int16_t n);
+void printhexword_negative(int16_t n);
 
 #endif
